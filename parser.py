@@ -49,8 +49,19 @@ def get_data_from_url(url):
     rows = table.find_all('tr')
 
     for row in rows[1:]:
+        row_class = None
+        if len(row.attrs):
+            if 'class' in row.attrs:
+                row_class = row.attrs['class']
+
         cols = row.find_all('td')
-        ing_id = cols[0].find('a')['href'].split('.')[0]
+        print(cols)
+        ing_id = None
+        try:
+            ing_id = cols[0].find('a')['href'].split('.')[0]
+        except Exception as e:
+            print("Cannot extract ingredient id: ", e)
+
         cols = [ele.text.strip() for ele in cols]
 
         ingredient = None
@@ -61,6 +72,11 @@ def get_data_from_url(url):
         elif len(cols) == 5:
             ingredient = {_NAME: cols[0], _FUNCTION: cols[1], _ACNE: cols[2],
                     _IRRITANT: cols[3], _SAFETY: cols[4], _COSDNA_ID: ing_id}
+        elif row_class:
+            print('This row has class: %s and %s columns. Only name will be saved'
+                    % (row_class, len(cols)))
+            ingredient = {_NAME: cols[0], _FUNCTION: None, _ACNE: None,
+                    _IRRITANT: None, _SAFETY: None, _COSDNA_ID: None}
         else:
             raise ValueError('Wrong data format: ', str(cols))
 
@@ -78,7 +94,7 @@ def add_to_db(urls):
 
     for url in urls:
         product_info, ingredients = get_data_from_url(url)
-        print(product_info, ingredients)
+        print(product_info)
 
         prod_ings = []
 
